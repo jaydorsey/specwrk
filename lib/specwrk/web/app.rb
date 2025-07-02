@@ -1,0 +1,77 @@
+# frozen_string_literal: true
+
+require "webrick"
+require "rack"
+
+# rack v3 or v2
+begin
+  require "rackup/handler/webrick"
+rescue LoadError
+  require "rack/handler/webrick"
+end
+
+require "specwrk/web/auth"
+require "specwrk/web/endpoints"
+
+module Specwrk
+  class Web
+    class App
+      def self.run!
+        Process.setproctitle "specwrk-server"
+
+        server_opts = {
+          Port: ENV.fetch("SPECWRK_SRV_PORT", "5138").to_i,
+          Logger: WEBrick::Log.new($stdout, WEBrick::Log::FATAL),
+          AccessLog: [],
+          KeepAliveTimeout: 300
+        }
+
+        # rack v3 or v2
+        handler_klass = defined?(Rackup::Handler) ? Rackup::Handler::WEBrick : Rack::Handler.get("webrick")
+
+        handler_klass.run(rackup, **server_opts) do |server|
+          ["INT", "TERM"].each do |sig|
+            trap(sig) do
+              puts "\n→ Shutting down gracefully..." unless ENV["SPECWRK_FORKED"]
+              server.shutdown
+            end
+          end
+        end
+      end
+
+      def call(env)
+        request = Rack::Request.new(env)
+
+        route(method: request.request_method, path: request.path_info)
+          .new(request)
+          .response
+      end
+
+      private_class_method def self.rackup
+        Rack::Builder.new do
+          use Specwrk::Web::Auth          # global auth check
+          run Specwrk::Web::App.new       # your router
+        end
+      end
+
+      def route(method:, path:)
+        case [method, path]
+        when ["GET", "/heartbeat"]
+          Endpoints::Heartbeat
+        when ["POST", "/pop"]
+          Endpoints::Pop
+        when ["POST", "/complete"]
+          Endpoints::Complete
+        when ["POST", "/seed"]
+          Endpoints::Seed
+        when ["GET", "/stats"]
+          Endpoints::Stats
+        when ["DELETE", "/shutdown"]
+          Endpoints::Shutdown
+        else
+          Endpoints::NotFound
+        end
+      end
+    end
+  end
+end
