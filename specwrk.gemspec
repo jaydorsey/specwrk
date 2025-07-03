@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Parallel rspec test runner from a queue of pending jobs."
   spec.homepage = "https://github.com/danielwestendorf/specwrk"
-  spec.license = "LGPLv3"
+  spec.license = "GPL-3.0-or-later"
   spec.required_ruby_version = ">= 3.0.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
