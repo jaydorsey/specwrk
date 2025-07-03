@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "pathname"
+require "fileutils"
 
 require "dry/cli"
 
@@ -42,6 +43,7 @@ module Specwrk
         ENV["SPECWRK_ID"] = id
         ENV["SPECWRK_COUNT"] = count.to_s
         ENV["SPECWRK_OUT"] = Pathname.new(output).expand_path(Dir.pwd).to_s
+        FileUtils.mkdir_p(ENV["SPECWRK_OUT"])
       end
 
       def start_workers
@@ -76,8 +78,11 @@ module Specwrk
       end
 
       on_setup do |port:, bind:, output:, key:, single_run:, group_by:, verbose:, **|
-        ENV["SPECWRK_SRV_LOG"] = Pathname.new(File.join(output, "server.log")).expand_path(Dir.pwd).to_s if output && !verbose
-        ENV["SPECWRK_SRV_OUTPUT"] = Pathname.new(File.join(output, "report.json")).expand_path(Dir.pwd).to_s if output
+        ENV["SPECWRK_OUT"] = Pathname.new(output).expand_path(Dir.pwd).to_s
+        FileUtils.mkdir_p(ENV["SPECWRK_OUT"])
+
+        ENV["SPECWRK_SRV_LOG"] ||= Pathname.new(File.join(ENV["SPECWRK_OUT"], "server.log")).to_s if output && !verbose
+        ENV["SPECWRK_SRV_OUTPUT"] ||= Pathname.new(File.join(ENV["SPECWRK_OUT"], "report.json")).expand_path(Dir.pwd).to_s if output
         ENV["SPECWRK_SRV_PORT"] = port
         ENV["SPECWRK_SRV_BIND"] = bind
         ENV["SPECWRK_SRV_KEY"] = key
