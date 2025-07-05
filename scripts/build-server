@@ -10,7 +10,7 @@ docker buildx build --build-arg SPECWRK_VERSION=$SPECWRK_VERSION \
   --push \
   --file docker/Dockerfile.server \
   --tag docker.io/danielwestendorf/specwrk-server:latest \
-  --tag docker.io/danielwestendorf/specwrk:$SPECWRK_VERSION \
+  --tag docker.io/danielwestendorf/specwrk-server:$SPECWRK_VERSION \
   .
 
 rm ./$GEMFILE
