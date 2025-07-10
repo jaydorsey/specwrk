@@ -173,6 +173,7 @@ Single-node, multi-process works best when you only have a single node running t
 Make sure to persist `$SPECWRK_OUT/report.json` between runs so that subsequent run queues can be optimized.
 
 [GitHub Actions Example](https://github.com/danielwestendorf/specwrk/blob/main/.github/workflows/specwrk-single-node.yml)
+
 [CircleCI Example](https://github.com/danielwestendorf/specwrk/blob/main/.circleci/config.yml) (specwrk-single-node job)
 
 ### Multi-node, multi-process
