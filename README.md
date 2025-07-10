@@ -8,7 +8,7 @@ One CLI command to:
 3. Execute
 
 ## Install
-Start by adding specwrk to your project or installing it.
+Start by adding `specwrk` to your project or installing it.
 ```sh
 $ bundle add specwrk -g development,test
 ```
@@ -158,19 +158,77 @@ Rails has had easy multi-process test setup for a while now by creating unique t
 -- Capybara.server_port = 5550
 ++ Capybara.server_port = 5550 + ENV.fetch("TEST_ENV_NUMBER", "1").to_i
 ++ Capybara.always_include_port = true
+-- ActiveRecord::Migration.maintain_test_schema!
+++ ActiveRecord::Migration.maintain_test_schema! unless ENV["SPECWRK_SEED"]
 ```
+
+YMMV, but please submit an issue if your setup required more configuration.
 
 ## CI
 Run `specwrk` in CI in either a single-node or multi-node configuration.
 
 ### Single-node, multi-process
+Single-node, multi-process works best when you only have a single node running tests, but that node has many unused CPUs. This is similar to running `specwrk` locally with `bundle exec specwrk start spec/` which spins up a local server, seeds the server with examples that need to be run, and then spawns child worker processes which execute those examples in parallel.
+
+Make sure to persist `$SPECWRK_OUT/report.json` between runs so that subsequent run queues can be optimized.
+
 [GitHub Actions Example](https://github.com/danielwestendorf/specwrk/blob/main/.github/workflows/specwrk-single-node.yml)
 [CircleCI Example](https://github.com/danielwestendorf/specwrk/blob/main/.circleci/config.yml) (specwrk-single-node job)
 
 ### Multi-node, multi-process
+Multi-node, multi-process works best when have many nodes running tests. This distributes the test execution across the nodes until the queue is for the run is empty, optimizing for slowest specs first. This distributes test execution across all nodes evenly(-ish).
+
+To accomplish this, a central queue server is required, examples must be explicitly seeded, and workers explicitly started.
+
+1. Start a centralized queue server (see [Running a persistent Queue Server](#running-a-persistent-queue-server)) 
+2. Seed the server with the specs for the current `SPECWWRK_RUN` pointed at your central server
+3. Execute `specwrk work` for the given process count, for the current `SPECWRK_RUN`, pointed at your central server
+
 [GitHub Actions Example](https://github.com/danielwestendorf/specwrk/blob/main/.github/workflows/specwrk-multi-node.yml)
 
-[CircleCI Example](https://github.com/danielwestendorf/specwrk/blob/main/.circleci/config.yml) (specwrk-multi-node-prepare, specwrk-multi-node jobs)
+[CircleCI Example](https://github.com/danielwestendorf/specwrk/blob/main/.circleci/config.yml) (see specwrk-multi-node-prepare, specwrk-multi-node jobs)
+
+
+## Running a persistent Queue Server
+Start a persistent Queue Server given one of the following methods
+- The explicit ruby command `bundle exec specwrk serve --port $PORT`
+- Via [docker image](https://hub.docker.com/repository/docker/danielwestendorf/specwrk-server/general): `docker run -e PORT=5139 -p 5139:5139 docker.io/danielwestendorf/specwrk-server:latest`
+- By mounting the app as an Rack app
+  ```ruby
+  require 'rack'
+  require 'specwrk/web'
+
+  app = Specwrk::Web.rackup   # this is a Rack::Builder instance
+
+  Rack::Server.start(
+    app:    app,              
+    server: 'webrick',        
+    Host:   '0.0.0.0',        
+    Port:   9292
+  )
+
+  # OR maybe
+  # Rack::Handler::WEBrick.run(app, Host: '0.0.0.0', Port: 9292)
+  # Rack::Handler::Puma.run(app, Host: '0.0.0.0', Port: 9292)
+
+  # OR maybe
+  # config.ru
+  require_relative 'lib/specwrk/web'
+
+  run Specwrk::Web.rackup
+
+  # OR maybe
+  # config/routes.rb
+  Rails.application.routes.draw do
+    # everything under /specwrk will be handled by your Rack::Builder
+    mount Specwrk::Web.rackup, at: '/specwrk'
+  end
+  ```
+### Configuring your Queue Server
+- Secure your server with a key either with the `SPECWRK_SRV_KEY` environment variable or `--key` CLI option
+- Configure the server output to be a persisted volume so your timings survive between restarts with  the `SPECWRK_OUT` environment variable or `--out` CLI option 
+
+See [specwrk serve --help](#specwrk-serve) for all possible configuration options.
 
 ## Contributing
 
