@@ -1,5 +1,37 @@
 ## [Unreleased]
 
+## v0.4.11
+
+- Move logic out of CLI methods ([#64](https://github.com/danielwestendorf/specwrk/issues/64)) by @danielwestendorf  
+- Add thruster in front of puma ([#65](https://github.com/danielwestendorf/specwrk/issues/65)) by @danielwestendorf  
+- Revise heartbeats logic ([#66](https://github.com/danielwestendorf/specwrk/issues/66)) by @danielwestendorf  
+:contentReference[oaicite:0]{index=0}
+
+## v0.4.9
+
+- Remove single-run env var (it was not what I wanted) by @danielwestendorf  
+:contentReference[oaicite:1]{index=1}
+
+## v0.4.8
+
+- Fix `config.ru` by @danielwestendorf  
+:contentReference[oaicite:2]{index=2}
+
+## v0.4.7
+
+- Switch to Puma for the Docker image (#59) by @danielwestendorf  
+:contentReference[oaicite:3]{index=3}
+
+## v0.4.6
+
+- Nil env var that will prevent start command from completing ([#56](https://github.com/danielwestendorf/specwrk/issues/56)) by @danielwestendorf  
+- Better handling of seed failing ([#57](https://github.com/danielwestendorf/specwrk/issues/57)) by @danielwestendorf  
+- Silence health logging ([#58](https://github.com/danielwestendorf/specwrk/issues/58)) by @danielwestendorf  
+- Add missing CCI caching of `report.json` ([#55](https://github.com/danielwestendorf/specwrk/issues/55)) by @danielwestendorf  
+- Add CircleCI examples ([#50](https://github.com/danielwestendorf/specwrk/issues/50)) by @danielwestendorf  
+- Better GHA Examples ([#49](https://github.com/danielwestendorf/specwrk/issues/49)) by @danielwestendorf  
+- Skip key lookup and rely on the result of `Hash#delete` instead by @danielwestendorf  
+
 ## v0.4.5
 
 - Set ENV var when generating seed examples [#47](https://github.com/danielwestendorf/specwrk/issues/47). by @danielwestendorf 
