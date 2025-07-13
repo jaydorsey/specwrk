@@ -87,13 +87,13 @@ module Specwrk
 
     def thump
       while running && !Specwrk.force_quit
+        sleep 10
+
         begin
-          client.heartbeat if client.last_request_at.nil? || client.last_request_at < Time.now - 10
+          client.heartbeat if client.last_request_at.nil? || client.last_request_at < Time.now - 30
         rescue
           warn "Heartbeat failed!"
         end
-
-        sleep 1
       end
     end
 
