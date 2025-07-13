@@ -5,22 +5,18 @@
 - Move logic out of CLI methods ([#64](https://github.com/danielwestendorf/specwrk/issues/64)) by @danielwestendorf  
 - Add thruster in front of puma ([#65](https://github.com/danielwestendorf/specwrk/issues/65)) by @danielwestendorf  
 - Revise heartbeats logic ([#66](https://github.com/danielwestendorf/specwrk/issues/66)) by @danielwestendorf  
-:contentReference[oaicite:0]{index=0}
 
 ## v0.4.9
 
 - Remove single-run env var (it was not what I wanted) by @danielwestendorf  
-:contentReference[oaicite:1]{index=1}
 
 ## v0.4.8
 
 - Fix `config.ru` by @danielwestendorf  
-:contentReference[oaicite:2]{index=2}
 
 ## v0.4.7
 
 - Switch to Puma for the Docker image (#59) by @danielwestendorf  
-:contentReference[oaicite:3]{index=3}
 
 ## v0.4.6
 
