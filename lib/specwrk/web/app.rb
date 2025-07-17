@@ -88,7 +88,7 @@ module Specwrk
 
       def route(method:, path:)
         case [method, path]
-        when ["GET", "/health"]
+        when ["GET", "/health"], ["HEAD", "/health"]
           Endpoints::Health
         when ["GET", "/heartbeat"]
           Endpoints::Heartbeat

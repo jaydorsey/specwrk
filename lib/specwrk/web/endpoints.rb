@@ -71,7 +71,7 @@ module Specwrk
 
       class Health < Base
         def response
-          ok
+          [200, {}, []]
         end
       end
 
