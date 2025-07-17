@@ -12,7 +12,7 @@ module Specwrk
   class CLIReporter
     def report
       unless Client.connect?
-        puts colorizer.wrap("Cannot connect to server to generate report. Assuming failure.", :red)
+        puts colorizer.wrap("\nCannot connect to server to generate report. Assuming failure.", :red)
         return 1
       end
 
@@ -32,7 +32,7 @@ module Specwrk
         0
       end
     rescue Specwrk::UnhandledResponseError => e
-      puts colorizer.wrap("Cannot report, #{e.message}.", :red)
+      puts colorizer.wrap("\nCannot report, #{e.message}.", :red)
 
       client.shutdown
 

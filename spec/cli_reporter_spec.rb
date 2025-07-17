@@ -18,7 +18,7 @@ RSpec.describe Specwrk::CLIReporter do
 
         it "prints failure message and returns 1" do
           expect(instance).to receive(:puts)
-            .with("\e[31mCannot connect to server to generate report. Assuming failure.\e[0m")
+            .with("\e[31m\nCannot connect to server to generate report. Assuming failure.\e[0m")
           expect(subject).to eq(1)
         end
       end
@@ -36,7 +36,7 @@ RSpec.describe Specwrk::CLIReporter do
         end
 
         it "prints no examples run message and returns 1" do
-          expect(instance).to receive(:puts).with("\e[31mCannot report, fff.\e[0m")
+          expect(instance).to receive(:puts).with("\e[31m\nCannot report, fff.\e[0m")
           expect(subject).to eq(1)
         end
       end
