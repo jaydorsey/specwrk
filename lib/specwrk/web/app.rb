@@ -52,10 +52,8 @@ module Specwrk
 
         def setup!
           if ENV["SPECWRK_OUT"]
-
             FileUtils.mkdir_p(ENV["SPECWRK_OUT"])
             ENV["SPECWRK_SRV_LOG"] ||= Pathname.new(File.join(ENV["SPECWRK_OUT"], "server.log")).to_s unless ENV["SPECWRK_SRV_VERBOSE"]
-            ENV["SPECWRK_SRV_OUTPUT"] ||= Pathname.new(File.join(ENV["SPECWRK_OUT"], "report.json")).expand_path(Dir.pwd).to_s
           end
 
           if ENV["SPECWRK_SRV_LOG"]
@@ -100,8 +98,8 @@ module Specwrk
           Endpoints::Complete
         when ["POST", "/seed"]
           Endpoints::Seed
-        when ["GET", "/stats"]
-          Endpoints::Stats
+        when ["GET", "/report"]
+          Endpoints::Report
         when ["DELETE", "/shutdown"]
           Endpoints::Shutdown
         else

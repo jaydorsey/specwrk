@@ -9,19 +9,20 @@ RSpec.describe Specwrk::Web::Endpoints do
   subject { response }
 
   let(:request) { Rack::Request.new(env) }
-  let(:env) { {"rack.input" => StringIO.new(body), "HTTP_X_SPECWRK_RUN" => run, "HTTP_X_SPECWRK_ID" => worker_id} }
+  let(:env) { {"rack.input" => StringIO.new(body), "HTTP_X_SPECWRK_RUN" => run_id, "HTTP_X_SPECWRK_ID" => worker_id} }
   let(:body) { "" }
-  let(:run) { "main" }
+  let(:run_id) { "main" }
   let(:worker_id) { "foobar-0" }
-  let(:response) { described_class.new(request).response }
+  let(:response) { instance.response }
+  let(:instance) { described_class.new(request) }
   let(:ok) { [200, {"Content-Type" => "text/plain"}, ["OK, 'ol chap"]] }
 
-  let(:pending_queue) { Specwrk::Web::PENDING_QUEUES[run] }
-  let(:processing_queue) { Specwrk::Web::PROCESSING_QUEUES[run] }
-  let(:completed_queue) { Specwrk::Web::COMPLETED_QUEUES[run] }
-  let(:worker) { Specwrk::Web::WORKERS[run][worker_id] }
+  let(:pending_queue) { Specwrk::Web::PENDING_QUEUES[run_id] }
+  let(:processing_queue) { Specwrk::Web::PROCESSING_QUEUES[run_id] }
+  let(:completed_queue) { Specwrk::Web::COMPLETED_QUEUES[run_id] }
+  let(:worker) { Specwrk::Web::WORKERS[run_id][worker_id] }
 
-  let(:env_vars) { {"SPECWRK_SRV_OUTPUT" => ".non-existant.json"} }
+  let(:env_vars) { {"SPECWRK_OUT" => Dir.tmpdir} }
 
   before { stub_const("ENV", env_vars) }
 
@@ -55,7 +56,7 @@ RSpec.describe Specwrk::Web::Endpoints do
     let(:body) { JSON.generate([{id: 1, file_path: "a.rb:1", run_time: 0.1}]) }
 
     context "SPECWRK_SRV_SINGLE_SEED_PER_RUN and pending_queue already has examples" do
-      let(:env_vars) { {"SPECWRK_SRV_OUTPUT" => ".non-existant.json", "SPECWRK_SRV_SINGLE_SEED_PER_RUN" => "1"} }
+      let(:env_vars) { {"SPECWRK_OUT" => nil, "SPECWRK_SRV_SINGLE_SEED_PER_RUN" => "1"} }
 
       before { pending_queue.merge!(2 => {id: 2, file_path: "b.rb:1", run_time: 0.1}) }
 
@@ -64,14 +65,14 @@ RSpec.describe Specwrk::Web::Endpoints do
     end
 
     context "SPECWRK_SRV_SINGLE_SEED_PER_RUN and but pending_queue is empty" do
-      let(:env_vars) { {"SPECWRK_SRV_OUTPUT" => ".non-existant.json", "SPECWRK_SRV_SINGLE_SEED_PER_RUN" => "1"} }
+      let(:env_vars) { {"SPECWRK_OUT" => nil, "SPECWRK_SRV_SINGLE_SEED_PER_RUN" => "1"} }
 
       it { is_expected.to eq(ok) }
       it { expect { subject }.to change(pending_queue, :length).from(0).to(1) }
     end
 
     context "examples get merged into pending queue" do
-      let(:env_vars) { {"SPECWRK_SRV_OUTPUT" => ".non-existant.json", "SPECWRK_SRV_SINGLE_SEED_PER_RUN" => nil} }
+      let(:env_vars) { {"SPECWRK_OUT" => nil, "SPECWRK_SRV_SINGLE_SEED_PER_RUN" => nil} }
 
       it { is_expected.to eq(ok) }
       it { expect { subject }.to change(pending_queue, :length).from(0).to(1) }
@@ -166,6 +167,33 @@ RSpec.describe Specwrk::Web::Endpoints do
       before { processing_queue.merge!(2 => {id: 2, expected_run_time: 0}) }
 
       it { is_expected.to eq([404, {"Content-Type" => "text/plain"}, ["This is not the path you're looking for, 'ol chap..."]]) }
+    end
+  end
+
+  describe Specwrk::Web::Endpoints::Report do
+    let(:most_recent_run_report_file) { File.join(Dir.tmpdir, "#{SecureRandom.uuid}.json").to_s }
+
+    before do
+      allow(instance).to receive(:most_recent_run_report_file)
+        .and_return(most_recent_run_report_file)
+    end
+
+    context "run report file does not exist" do
+      it { is_expected.to eq([404, {"Content-Type" => "text/plain"}, ["Unable to report on run #{run_id}; no file matching *-report-main.json"]]) }
+    end
+
+    context "run report file does exist" do
+      let(:file_content) { "file_data" }
+
+      around do |ex|
+        File.write(most_recent_run_report_file, file_content)
+
+        ex.run
+
+        FileUtils.rm(most_recent_run_report_file)
+      end
+
+      it { is_expected.to eq([200, {"Content-Type" => "application/json"}, [file_content]]) }
     end
   end
 end

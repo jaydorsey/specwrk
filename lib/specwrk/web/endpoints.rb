@@ -38,7 +38,7 @@ module Specwrk
         end
 
         def pending_queue
-          Web::PENDING_QUEUES[request.get_header("HTTP_X_SPECWRK_RUN")]
+          Web::PENDING_QUEUES[run_id]
         end
 
         def processing_queue
@@ -55,6 +55,14 @@ module Specwrk
 
         def worker
           workers[request.get_header("HTTP_X_SPECWRK_ID")]
+        end
+
+        def run_id
+          request.get_header("HTTP_X_SPECWRK_RUN")
+        end
+
+        def run_report_file_path
+          @run_report_file_path ||= File.join(ENV["SPECWRK_OUT"], "#{completed_queue.created_at.strftime("%Y%m%dT%H%M%S")}-report-#{run_id}.json").to_s
         end
       end
 
@@ -98,8 +106,8 @@ module Specwrk
             end
           end
 
-          if pending_queue.length.zero? && processing_queue.length.zero? && completed_queue.length.positive? && ENV["SPECWRK_SRV_OUTPUT"]
-            completed_queue.dump_and_write(ENV["SPECWRK_SRV_OUTPUT"])
+          if pending_queue.length.zero? && processing_queue.length.zero? && completed_queue.length.positive? && ENV["SPECWRK_OUT"]
+            completed_queue.dump_and_write(run_report_file_path)
           end
 
           ok
@@ -128,19 +136,31 @@ module Specwrk
         end
       end
 
-      class Stats < Base
+      class Report < Base
         def response
-          data = {
-            pending: {count: pending_queue.length},
-            processing: {count: processing_queue.length},
-            completed: completed_queue.dump
-          }
-
-          if data.dig(:completed, :examples).length.positive?
-            [200, {"Content-Type" => "application/json"}, [JSON.generate(data)]]
+          if data
+            [200, {"Content-Type" => "application/json"}, [data]]
           else
-            not_found
+            [404, {"Content-Type" => "text/plain"}, ["Unable to report on run #{run_id}; no file matching #{"*-report-#{run_id}.json"}"]]
           end
+        end
+
+        private
+
+        def data
+          return @data if defined? @data
+
+          return unless most_recent_run_report_file
+          return unless File.exist?(most_recent_run_report_file)
+
+          @data = File.open(most_recent_run_report_file, "r") do |file|
+            file.flock(File::LOCK_SH)
+            file.read
+          end
+        end
+
+        def most_recent_run_report_file
+          @most_recent_run_report_file ||= Dir.glob(File.join(ENV["SPECWRK_OUT"], "*-report-#{run_id}.json")).last
         end
       end
 
