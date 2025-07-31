@@ -60,12 +60,9 @@ module Specwrk
       end
 
       def delete(*keys)
-        encoded_globs = keys.map { |key| File.join(@path, "*_#{encode_key key}#{EXT}") }
-        filenames = Dir.glob(encoded_globs)
+        filenames = keys.map { |key| known_key_pairs[key] }.compact
 
-        if filenames.length.positive?
-          FileUtils.rm_f(filenames)
-        end
+        FileUtils.rm_f(filenames)
 
         keys.each { |key| known_key_pairs.delete(key) }
       end
