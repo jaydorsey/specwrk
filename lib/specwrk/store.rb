@@ -150,7 +150,7 @@ module Specwrk
       file_path = self[key][:file_path]
 
       catch(:full) do
-        all_keys.each_slice(25).each do |key_group|
+        all_keys.each_slice(24).each do |key_group|
           examples = multi_read(*key_group)
 
           examples.each do |key, example|
