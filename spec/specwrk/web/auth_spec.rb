@@ -41,7 +41,15 @@ RSpec.describe Specwrk::Web::Auth do
     context "invalid token" do
       let(:headers) { {"HTTP_AUTHORIZATION" => "Bearer wrong-token"} }
 
-      it { is_expected.to eq(401) }
+      context "GET request" do
+        it { is_expected.to eq(401) }
+      end
+
+      context "HEAD request" do
+        let(:response) { Rack::MockRequest.new(middleware).head(path, headers) }
+
+        it { is_expected.to eq(401) }
+      end
     end
 
     context "valid token" do

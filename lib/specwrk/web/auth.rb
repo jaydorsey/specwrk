@@ -11,7 +11,7 @@ module Specwrk
       end
 
       def call(env)
-        env[:request] ||= Rack::Request.new(env)
+        @request = env[:request] ||= Rack::Request.new(env)
 
         return @app.call(env) if [nil, ""].include? ENV["SPECWRK_SRV_KEY"]
         return @app.call(env) if @excluded_paths.include? env[:request].path_info
@@ -28,7 +28,11 @@ module Specwrk
       private
 
       def unauthorized
-        [401, {"content-type" => "application/json"}, ["Unauthorized"]]
+        if @request.head?
+          [401, {}, []]
+        else
+          [401, {"content-type" => "application/json"}, ["Unauthorized"]]
+        end
       end
     end
   end
