@@ -40,6 +40,7 @@ module Specwrk
         completion_formatter.examples.clear
 
         RSpec.clear_examples
+        RSpec.configuration.backtrace_formatter.filter_gem "specwrk"
 
         # see https://github.com/rspec/rspec-core/pull/2723
         if Gem::Version.new(RSpec::Core::Version::STRING) <= Gem::Version.new("3.9.1")
