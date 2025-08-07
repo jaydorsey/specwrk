@@ -2,6 +2,7 @@
 
 require "json"
 require "base64"
+require "securerandom"
 
 require "specwrk/store/base_adapter"
 
