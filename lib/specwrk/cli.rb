@@ -132,7 +132,7 @@ module Specwrk
         examples = ListExamples.new(dir).examples
 
         Client.wait_for_server!
-        Client.new.seed(examples, max_retries: max_retries)
+        Client.new.seed(examples, max_retries)
         file_count = examples.group_by { |e| e[:file_path] }.keys.size
         puts "🌱 Seeded #{examples.size} examples across #{file_count} files"
       rescue Errno::ECONNREFUSED
