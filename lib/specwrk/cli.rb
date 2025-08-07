@@ -49,16 +49,31 @@ module Specwrk
       end
 
       def start_workers
+        @final_outputs = []
         @worker_pids = worker_count.times.map do |i|
+          reader, writer = IO.pipe
+          @final_outputs << reader
+
           Process.fork do
             ENV["TEST_ENV_NUMBER"] = ENV["SPECWRK_FORKED"] = (i + 1).to_s
             ENV["SPECWRK_ID"] = ENV["SPECWRK_ID"] + "-#{i + 1}"
 
+            $final_output = writer # standard:disable Style/GlobalVars
+            $final_output.sync = true # standard:disable Style/GlobalVars
+            reader.close
+
             require "specwrk/worker"
 
             status = Specwrk::Worker.run!
+            $final_output.close # standard:disable Style/GlobalVars
             exit(status)
-          end
+          end.tap { writer.close }
+        end
+      end
+
+      def drain_outputs
+        @final_outputs.each do |reader|
+          reader.each_line { |line| $stdout.print line }
         end
       end
 
@@ -104,10 +119,10 @@ module Specwrk
       include Clientable
 
       desc "Seed the server with a list of specs for the run"
-
+      option :max_retries, default: 0, desc: "Number of times an example will be re-run should it fail"
       argument :dir, required: false, default: "spec", desc: "Relative spec directory to run against"
 
-      def call(dir:, **args)
+      def call(max_retries:, dir:, **args)
         self.class.setup(**args)
 
         require "specwrk/list_examples"
@@ -117,7 +132,7 @@ module Specwrk
         examples = ListExamples.new(dir).examples
 
         Client.wait_for_server!
-        Client.new.seed(examples)
+        Client.new.seed(examples, max_retries: max_retries)
         file_count = examples.group_by { |e| e[:file_path] }.keys.size
         puts "🌱 Seeded #{examples.size} examples across #{file_count} files"
       rescue Errno::ECONNREFUSED
@@ -140,6 +155,7 @@ module Specwrk
 
         start_workers
         wait_for_workers_exit
+        drain_outputs
 
         require "specwrk/cli_reporter"
         Specwrk::CLIReporter.new.report
@@ -180,9 +196,10 @@ module Specwrk
       include Servable
 
       desc "Start a server and workers, monitor until complete"
+      option :max_retries, default: 0, desc: "Number of times an example will be re-run should it fail"
       argument :dir, required: false, default: "spec", desc: "Relative spec directory to run against"
 
-      def call(dir:, **args)
+      def call(max_retries:, dir:, **args)
         self.class.setup(**args)
         $stdout.sync = true
 
@@ -204,6 +221,7 @@ module Specwrk
           require "specwrk/list_examples"
           require "specwrk/client"
 
+          ENV["SPECWRK_FORKED"] = "1"
           ENV["SPECWRK_SEED"] = "1"
           examples = ListExamples.new(dir).examples
 
@@ -211,7 +229,7 @@ module Specwrk
           Client.wait_for_server!
           status "Server responding ✓"
           status "Seeding #{examples.length} examples..."
-          Client.new.seed(examples)
+          Client.new.seed(examples, max_retries)
           file_count = examples.group_by { |e| e[:file_path] }.keys.size
           status "🌱 Seeded #{examples.size} examples across #{file_count} files"
         end
@@ -228,6 +246,7 @@ module Specwrk
         status "#{worker_count} workers started ✓\n"
         Specwrk.wait_for_pids_exit(@worker_pids)
 
+        drain_outputs
         return if Specwrk.force_quit
 
         require "specwrk/cli_reporter"

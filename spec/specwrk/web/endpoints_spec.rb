@@ -36,12 +36,14 @@ RSpec.describe Specwrk::Web::Endpoints do
     let(:processing) { Specwrk::Store.new datastore_uri, "processing" }
     let(:completed) { Specwrk::CompletedStore.new datastore_uri, "completed" }
     let(:worker) { Specwrk::PendingStore.new datastore_uri, File.join("workers", worker_id.to_s) }
+    let(:failure_counts) { Specwrk::Store.new datastore_uri, "failure_counts" }
 
     let(:existing_run_times_data) { {} }
     let(:existing_pending_data) { {} }
     let(:existing_processing_data) { {} }
     let(:existing_completed_data) { {} }
     let(:existing_worker_data) { {} }
+    let(:existing_failure_counts_data) { {} }
 
     let(:run_id) { "main" }
     let(:worker_id) { :"foobar-0" }
@@ -60,6 +62,7 @@ RSpec.describe Specwrk::Web::Endpoints do
       processing.tap(&:clear).merge!(existing_processing_data)
       completed.tap(&:clear).merge!(existing_completed_data)
       worker.tap(&:clear).merge!(existing_worker_data)
+      failure_counts.tap(&:clear).merge!(existing_failure_counts_data)
     end
 
     describe Specwrk::Web::Endpoints::Base do
@@ -84,18 +87,19 @@ RSpec.describe Specwrk::Web::Endpoints do
 
     describe Specwrk::Web::Endpoints::Seed do
       let(:request_method) { "POST" }
-      let(:body) { JSON.generate([{id: "a.rb:1", file_path: "a.rb", run_time: 0.1}]) }
+      let(:body) { JSON.generate(max_retries: 42, examples: [{id: "a.rb:1", file_path: "a.rb", run_time: 0.1}]) }
 
-      context "pending store reset with examples" do
+      context "pending store reset with examples and meta data" do
         let(:existing_pending_data) { {"b.rb:2" => {id: "b.rb:2", file_path: "b.rb", expected_run_time: 0.1}} }
 
         it { is_expected.to eq(ok) }
         it { expect { subject }.to change(pending, :inspect).from("b.rb:2": instance_of(Hash)).to("a.rb:1": instance_of(Hash)) }
+        it { expect { subject }.to change { pending.reload.max_retries }.from(0).to(42) }
       end
 
-      context "merged with expected_run_time sorted by file" do
+      context "merged with  sorted by file" do
         let(:body) do
-          JSON.generate([
+          JSON.generate(examples: [
             {id: "a.rb:1", file_path: "a.rb"},
             {id: "b.rb:1", file_path: "b.rb"},
             {id: "a.rb:2", file_path: "a.rb"}
@@ -105,7 +109,7 @@ RSpec.describe Specwrk::Web::Endpoints do
         it { expect { subject }.to change { pending.reload.keys }.from([]).to(%w[a.rb:1 a.rb:2 b.rb:1]) }
       end
 
-      context "merged with expected_run_time sorted by timings" do
+      context "merged with run_time_bucket_maximum sorted by timings" do
         let(:existing_run_times_data) do
           {
             "a.rb:1": 0.2,
@@ -115,7 +119,7 @@ RSpec.describe Specwrk::Web::Endpoints do
         end
 
         let(:body) do
-          JSON.generate([
+          JSON.generate(examples: [
             {id: "a.rb:1", file_path: "a.rb"},
             {id: "a.rb:2", file_path: "a.rb"},
             {id: "b.rb:3", file_path: "b.rb"},
@@ -240,6 +244,41 @@ RSpec.describe Specwrk::Web::Endpoints do
 
         it { is_expected.to eq([200, {"content-type" => "application/json", "x-specwrk-status" => "0"}, [JSON.generate([existing_processing_data.values.first])]]) }
         it { expect { subject }.to change { processing["a.rb:2"][:completion_threshold] } }
+      end
+
+      context "retries examples" do
+        let(:existing_failure_counts_data) { {"a.rb:1" => 1, "a.rb:2" => 5} }
+
+        let(:body) do
+          JSON.generate([
+            {id: "a.rb:1", file_path: "a.rb", expected_run_time: 0.1, status: "failed"},
+            {id: "a.rb:2", file_path: "a.rb", expected_run_time: 0.1, status: "failed"},
+            {id: "a.rb:3", file_path: "a.rb", expected_run_time: 0.1, status: "failed"},
+            {id: "a.rb:4", file_path: "a.rb", expected_run_time: 0.1, status: "passed"}
+          ])
+        end
+
+        let(:existing_processing_data) do
+          {
+            "a.rb:1": {id: "a.rb:1", file_path: "a.rb", expected_run_time: 0.1},
+            "a.rb:2": {id: "a.rb:2", file_path: "a.rb", expected_run_time: 0.1},
+            "a.rb:3": {id: "a.rb:3", file_path: "a.rb", expected_run_time: 0.1},
+            "a.rb:4": {id: "a.rb:4", file_path: "a.rb", expected_run_time: 0.1}
+          }
+        end
+
+        let(:response_body) do
+          JSON.generate([
+            {id: "a.rb:1", file_path: "a.rb", expected_run_time: 0.1, status: "failed"},
+            {id: "a.rb:3", file_path: "a.rb", expected_run_time: 0.1, status: "failed"}
+          ])
+        end
+
+        before { pending.max_retries = 5 }
+
+        it { is_expected.to eq([200, {"content-type" => "application/json", "x-specwrk-status" => "1"}, [response_body]]) }
+        it { expect { subject }.to change { processing.reload.length }.from(4).to(2) }
+        it { expect { subject }.to change { failure_counts.reload.to_h.values }.from(match_array([1, 5])).to(match_array([2, 5, 1])) }
       end
     end
   end

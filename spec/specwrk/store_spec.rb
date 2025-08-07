@@ -138,12 +138,30 @@ RSpec.describe Specwrk::PendingStore do
     end
   end
 
+  describe "#max_retries=" do
+    subject { instance.max_retries = 3 }
+
+    it { expect { subject }.to change(instance, :max_retries).from(0).to(3) }
+  end
+
+  describe "#max_retries" do
+    subject { instance.max_retries }
+
+    before { instance[described_class::MAX_RETRIES_KEY] = 4 }
+
+    it { is_expected.to eq(4) }
+  end
+
   describe "#merge!" do
-    subject { instance.merge!(:alpha => 1, "beta" => 2) }
+    subject { instance.merge!(:gamma => 3, :alpha => 1, "beta" => 2) }
 
-    before { instance["alpha"] = 0 }
+    before do
+      instance["alpha"] = 0
+      instance.order = ["alpha", "nonexistant"]
+    end
 
-    it { expect { subject }.to change(instance, :inspect).from(alpha: 0).to(alpha: 1, beta: 2) }
+    it { expect { subject }.to change(instance, :inspect).from(alpha: 0).to(alpha: 1, beta: 2, gamma: 3) }
+    it { expect { subject }.to change(instance, :order).from(%w[alpha nonexistant]).to(%w[alpha nonexistant gamma beta]) }
   end
 
   describe "#shift_bucket" do
