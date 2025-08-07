@@ -8,15 +8,11 @@ RSpec.describe Specwrk::Worker do
   let(:thread) { instance_double(Thread, kill: true) }
 
   let(:instance) { described_class.new }
-  let(:failure) { false }
-  let(:example_processed) { true }
 
   let(:executor) do
     instance_double Specwrk::Worker::Executor,
       final_output: tempfile,
-      examples: %w[a.rb:1 b.rb:2],
-      failure: failure,
-      example_processed: example_processed
+      examples: %w[a.rb:1 b.rb:2]
   end
 
   before do
@@ -77,18 +73,18 @@ RSpec.describe Specwrk::Worker do
     end
 
     context "no examples processed" do
-      let(:example_processed) { nil }
-
       before { allow(Specwrk::Client).to receive(:wait_for_server!) }
 
       it "returns 0 when no examples were processed, but server signals all examples completed" do
+        expect(client).to receive(:worker_status)
+          .and_return(0)
         expect(instance).to receive(:execute)
           .and_raise(Specwrk::CompletedAllExamplesError)
 
         expect(subject).to eq(0)
       end
 
-      it "returns 1 when no examples were processed, but server did not signal all examples completed" do
+      it "returns client's worker_status when no examples were processed, but server did not signal all examples completed" do
         expect(instance).to receive(:sleep)
           .with(1)
           .exactly(10).times
@@ -100,7 +96,10 @@ RSpec.describe Specwrk::Worker do
           .and_raise(Specwrk::WaitingForSeedError)
           .exactly(11).times
 
-        expect(subject).to eq(1)
+        expect(client).to receive(:worker_status)
+          .and_return(42)
+
+        expect(subject).to eq(42)
       end
     end
 
@@ -128,6 +127,9 @@ RSpec.describe Specwrk::Worker do
       before { allow(Specwrk::Client).to receive(:wait_for_server!) }
 
       it "breaks the loop and returns 0" do
+        expect(client).to receive(:worker_status)
+          .and_return(0)
+
         count = 1
         expect(instance).to receive(:execute).exactly(5).times do
           if count == 5
@@ -147,8 +149,6 @@ RSpec.describe Specwrk::Worker do
     end
 
     context "calls run_examples when WaitingForSeedError" do
-      let(:example_processed) { nil }
-
       before { allow(Specwrk::Client).to receive(:wait_for_server!) }
 
       it "waits up to 10s before exiting" do
@@ -167,7 +167,10 @@ RSpec.describe Specwrk::Worker do
         expect(instance).to receive(:warn)
           .with("No examples seeded, giving up!")
 
-        expect(subject).to eq(1)
+        expect(client).to receive(:worker_status)
+          .and_return(42)
+
+        expect(subject).to eq(42)
       end
     end
 
@@ -175,6 +178,9 @@ RSpec.describe Specwrk::Worker do
       before { allow(Specwrk::Client).to receive(:wait_for_server!) }
 
       it "sleeps but doesn't break loop" do
+        expect(client).to receive(:worker_status)
+          .and_return(0)
+
         completed = false
         expect(instance).to receive(:sleep)
           .with(0.5)
