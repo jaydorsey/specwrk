@@ -142,6 +142,26 @@ Options:
   --help, -h                        # Print this help
 ```
 
+### specwrk watch -c 8
+Starts 8 worker processes in watch mode for the current directory. Watched spec files will be distributed across the processes. By default, only looks at `_spec.rb` files. Configure a watchfile to map file changes to spec files (i.e. modification of `app/models/user.rb` should run `spec/models/user_spec.rb` and `spec/system/users_spec.rb`).
+
+```sh
+$ specwrk watch --help
+Command:
+  specwrk watch
+
+Usage:
+  specwrk watch
+
+Description:
+  Start a server and workers, watch for file changes in the current directory, and execute specs
+
+Options:
+  --watchfile=VALUE                 # Path to watchfile configuration, default: "Specwrk.watchfile.rb"
+  --count=VALUE, -c VALUE           # The number of worker processes you want to start, default: 1
+  --help, -h                        # Print this help
+```
+
 ## Configuring your test environment
 If you test suite tracks state, starts servers, etc. and you plan on running many processes on the same node, you'll need to make
 adjustments to avoid conflicting port usage or database/state mutations.
@@ -203,6 +223,43 @@ Start a persistent Queue Server given one of the following methods
 - Configure the server output to be a persisted volume so your timings survive between system restarts with the `SPECWRK_SRV_STORE_URI` environment variable or `--store-uri` CLI option. By default, `memory:///` will be used for the run's data stores (so run data will no survive server restarts) while `file://#{Dir.tmpdir}` will be used for run timings. Pass `--store-uri file:///whatever/absolute/path` to store all data on disk (required for multiple server processes).
 
 See [specwrk serve --help](#specwrk-serve) for all possible configuration options.
+
+### Create a watchfile for the `watch` command
+Watch file (default path is `Specwrk.watchfile.rb` in the current directory) is a ruby file that will be instance eval'd to configure the watcher. There are two commands available:
+
+1. `ignore(Regexp)` to define files that should never trigger a run
+2. `map(Regexp, &blk)` to map a file change to the spec files that should be run to that file change
+
+By default, files without a `.rb` extension will be ignored and files ending with `_spec.rb` will be run. Presence of a watchfile will override these defaults.
+
+```ruby
+# Specwrk.watchfile.rb
+# Ignore all files which don't have an .rb extension
+ignore(/^(?!.*\.rb$).+/)
+
+# When a _spec.rb file changes, it should be run
+map(/_spec\.rb$/) do |spec_path|
+  spec_path
+end
+
+# If a file in lib changes, map it to the spec folder for it's spec file
+map(/lib\/.*\.rb$/) do |path|
+  path.gsub(/lib\/(.+)\.rb/, "spec/\\1_spec.rb")
+end
+
+# If a model file changes (assuming rails app structure), run the model's spec file
+# map(/app\/models\/.*.rb$/) do |path|
+#   path.gsub(/app\/models\/(.+)\.rb/, "spec/models/\\1_spec.rb")
+# end
+#
+# If a controlelr file changes (assuming rails app structure), run the controller and system specs file
+# map(/app\/controllers\/.*.rb$/) do |path|
+#   [
+#     path.gsub(/app\/controllers\/(.+)\.rb/, "spec/controllers/\\1_spec.rb"),
+#     path.gsub(/app\/controllers\/(.+)\.rb/, "spec/system/\\1_spec.rb")
+#   ]
+# end
+```
 
 ## Contributing
 
