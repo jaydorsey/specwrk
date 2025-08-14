@@ -142,8 +142,8 @@ Options:
   --help, -h                        # Print this help
 ```
 
-### specwrk watch -c 8
-Starts 8 worker processes in watch mode for the current directory. Watched spec files will be distributed across the processes. By default, only looks at `_spec.rb` files. Configure a watchfile to map file changes to spec files (i.e. modification of `app/models/user.rb` should run `spec/models/user_spec.rb` and `spec/system/users_spec.rb`).
+### `specwrk watch -c 8` 
+Starts `8` worker processes in watch mode for the current directory. Watched spec files will be distributed across the processes. By default, only looks at `_spec.rb` files. Configure a [watchfile](#create-a-watchfile-for-the-watch-command) to map file changes to spec files (i.e. modification of `app/models/user.rb` should run `spec/models/user_spec.rb` and `spec/system/users_spec.rb`).
 
 ```sh
 $ specwrk watch --help
