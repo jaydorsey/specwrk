@@ -26,6 +26,7 @@ Commands:
   specwrk serve                 # Start a queue server
   specwrk start [DIR]           # Start a server and workers, monitor until complete
   specwrk version               # Print version
+  specwrk watch                 # Start a server and workers, watch for file changes in the current directory, and execute specs
   specwrk work                  # Start one or more worker processes
 ```
 
