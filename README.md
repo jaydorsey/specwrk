@@ -261,6 +261,22 @@ end
 # end
 ```
 
+## Prior/other works
+There are many prior works for running rspec tests across multiple processes. Most of them combine process output making failures hard to grok. Some are good at running tests locally, but not on CI, while others are invserly true. Others are comercial or impactical without making a purchase.
+
+specwrk is different because it:
+1. Puts your developer experience first. Easy execution. No messy outputs. Retries built in. Easy(er) debugging of flaky tests. 
+2. Is the same tool you use in development on your local box, in CI with a single runner, or CI with N number of runners.
+3. Is easy to deploy and manage a queue server.
+4. RSpec-only.
+5. Is free.
+
+[parallel_rspec](https://github.com/willbryant/parallel_rspec)
+[Knapsack](https://github.com/KnapsackPro/knapsack)
+[parallel_tests](https://github.com/grosser/parallel_tests)
+[rspecq](https://github.com/skroutz/rspecq)
+[RSpec ABQ](https://github.com/rwx-research/rspec-abq)
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/dwestendorf/specwrk.
