@@ -20,8 +20,12 @@ module Specwrk
 
           FileAdapter
         when /redis/
-          # Expects the specwrk-store-redis_adapter gem to be available
-          require "specwrk/store/redis_adapter" unless defined?(RedisAdapter)
+          begin
+            require "specwrk/store/redis_adapter" unless defined?(RedisAdapter)
+          rescue LoadError
+            warn "Unable use RedisAdapter with #{uri}, gem not found. Add `gem 'specwrk-store-redis_adapter'` to your Gemfile and bundle install."
+            exit(1)
+          end
 
           RedisAdapter
         end
