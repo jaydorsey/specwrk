@@ -1,22 +1,57 @@
-## [Unreleased]
-
 # Changelog
 
-## v0.15.2 — 2025-08-15
-[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.1...v0.15.2)
-- Fix bug where ruby objects were being written to ndjson files isntead of json — [#119](https://github.com/danielwestendorf/specwrk/pull/119) by @danielwestendorf
+## v0.15.9 — 2025-08-28  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.8...v0.15.9)  
+- Support lock skipping for read-only endpoints — [#139](https://github.com/danielwestendorf/specwrk/pull/139) by [@danielwestendorf](https://github.com/danielwestendorf)  
+- Fix typo in README — [#137](https://github.com/danielwestendorf/specwrk/pull/137) by [@willnet](https://github.com/willnet)  
+- Support an array of arguments when seeding/starting — [#141](https://github.com/danielwestendorf/specwrk/pull/141) by [@danielwestendorf](https://github.com/danielwestendorf)  
+- Load examples from processing before global lock — [#142](https://github.com/danielwestendorf/specwrk/pull/142) by [@danielwestendorf](https://github.com/danielwestendorf)  
 
-## v0.15.1 — 2025-08-14
-[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.0...v0.15.1)
-- Add `watch` command to split spec files across processes as they change — [#117](https://github.com/danielwestendorf/specwrk/pull/117) by @danielwestendorf
-- Readme formatting tweaks — @danielwestendorf
+## v0.15.8 — 2025-08-27  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.7...v0.15.8)  
+- Friendly helper message when Redis adapter is not available — [@danielwestendorf](https://github.com/danielwestendorf)  
 
-## v0.15.0 — 2025-08-08
-[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.14.1...v0.15.0)
-- When output path is specified, write an `.ndjson` file per worker of all examples executed — [#113](https://github.com/danielwestendorf/specwrk/pull/113) (fixes [#10](https://github.com/danielwestendorf/specwrk/issues/10)) by @danielwestendorf
-- Print re-run commands for failures — [#114](https://github.com/danielwestendorf/specwrk/pull/114) (fixes [#7](https://github.com/danielwestendorf/specwrk/issues/7)) by @danielwestendorf
-- Show count of examples that did not execute; make runs resumable by only clearing stores on seed — [#115](https://github.com/danielwestendorf/specwrk/pull/115) by @danielwestendorf
-- Report flake counts and provide flake re-run commands — [#116](https://github.com/danielwestendorf/specwrk/pull/116) (fixes [#112](https://github.com/danielwestendorf/specwrk/issues/112)) by @danielwestendorf
+## v0.15.7 — 2025-08-26  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.6...v0.15.7)  
+- Change request locking from global to per-`run_id` — [#135](https://github.com/danielwestendorf/specwrk/pull/135) by [@danielwestendorf](https://github.com/danielwestendorf)  
+- `rspec-core` is a runtime dependency (not `rspec`) — [#128](https://github.com/danielwestendorf/specwrk/pull/128) by [@bquorning](https://github.com/bquorning)  
+- README typo fix — [#126](https://github.com/danielwestendorf/specwrk/pull/126) by [@brett-anderson](https://github.com/brett-anderson)  
+
+## v0.15.6 — 2025-08-26  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.5...v0.15.6)  
+- Test `Store.adapter_klass` — [@danielwestendorf](https://github.com/danielwestendorf)  
+
+## v0.15.5 — 2025-08-26  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.4...v0.15.5)  
+- Add support for Redis store adapters — [#133](https://github.com/danielwestendorf/specwrk/pull/133) by [@danielwestendorf](https://github.com/danielwestendorf)  
+- Remove support for Ruby 3.1.0 — [@danielwestendorf](https://github.com/danielwestendorf)  
+- Remove `gem-release` from dev dependencies — [@danielwestendorf](https://github.com/danielwestendorf)  
+
+## v0.15.4 — 2025-08-23  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.3...v0.15.4)  
+- Split web endpoints into separate files for easier comprehension — [#129](https://github.com/danielwestendorf/specwrk/pull/129) by [@danielwestendorf](https://github.com/danielwestendorf)  
+- Write the title sequence as watch loops run — [#131](https://github.com/danielwestendorf/specwrk/pull/131) by [@danielwestendorf](https://github.com/danielwestendorf) (fixes [#130](https://github.com/danielwestendorf/specwrk/issues/130))  
+
+## v0.15.3 — 2025-08-22  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.2...v0.15.3)  
+- Clear filter-manager inclusions/exclusions when listing examples — [#122](https://github.com/danielwestendorf/specwrk/pull/122) by [@danielwestendorf](https://github.com/danielwestendorf) (fixes [#121](https://github.com/danielwestendorf/specwrk/issues/121))  
+- Smarter completion-threshold calculation; make runs resumable — [#124](https://github.com/danielwestendorf/specwrk/pull/124) by [@danielwestendorf](https://github.com/danielwestendorf) (fixes [#121](https://github.com/danielwestendorf/specwrk/issues/121))  
+
+## v0.15.2 — 2025-08-15  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.1...v0.15.2)  
+- Fix bug where Ruby objects were being written to NDJSON files instead of JSON — [#119](https://github.com/danielwestendorf/specwrk/pull/119) by [@danielwestendorf](https://github.com/danielwestendorf)  
+
+## v0.15.1 — 2025-08-14  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.15.0...v0.15.1)  
+- Add `watch` command to split spec files across processes as they change — [#117](https://github.com/danielwestendorf/specwrk/pull/117) by [@danielwestendorf](https://github.com/danielwestendorf)  
+- README formatting tweaks — [@danielwestendorf](https://github.com/danielwestendorf)  
+
+## v0.15.0 — 2025-08-08  
+[Compare](https://github.com/danielwestendorf/specwrk/compare/v0.14.1...v0.15.0)  
+- Per-worker NDJSON output when `--output` is specified — [#113](https://github.com/danielwestendorf/specwrk/pull/113) by [@danielwestendorf](https://github.com/danielwestendorf) (fixes [#10](https://github.com/danielwestendorf/specwrk/issues/10))  
+- Print re-run commands for failures — [#114](https://github.com/danielwestendorf/specwrk/pull/114) by [@danielwestendorf](https://github.com/danielwestendorf) (fixes [#7](https://github.com/danielwestendorf/specwrk/issues/7))  
+- Show number of examples that did not execute; make runs resumable — [#115](https://github.com/danielwestendorf/specwrk/pull/115) by [@danielwestendorf](https://github.com/danielwestendorf)  
+- Report flake counts and re-run commands — [#116](https://github.com/danielwestendorf/specwrk/pull/116) by [@danielwestendorf](https://github.com/danielwestendorf) (fixes [#112](https://github.com/danielwestendorf/specwrk/issues/112))  
 
 ## v0.14.1 — 2025-08-07
 [Compare](https://github.com/danielwestendorf/specwrk/compare/v0.14.0...v0.14.1)
