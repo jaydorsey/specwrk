@@ -223,6 +223,8 @@ Start a persistent Queue Server given one of the following methods
 - Secure your server with a key either with the `SPECWRK_SRV_KEY` environment variable or `--key` CLI option
 - Configure the server output to be a persisted volume so your timings survive between system restarts with the `SPECWRK_SRV_STORE_URI` environment variable or `--store-uri` CLI option. By default, `memory:///` will be used for the run's data stores (so run data will no survive server restarts) while `file://#{Dir.tmpdir}` will be used for run timings. Pass `--store-uri file:///whatever/absolute/path` to store all data on disk (required for multiple server processes).
 
+See [specwrk-store-redis_adapter](https://github.com/danielwestendorf/specwrk-store-redis_adapter) for Redis-compatible backed storage.
+
 See [specwrk serve --help](#specwrk-serve) for all possible configuration options.
 
 ### Create a watchfile for the `watch` command
@@ -273,10 +275,15 @@ specwrk is different because it:
 5. Is free.
 
 [parallel_rspec](https://github.com/willbryant/parallel_rspec)
+
 [Knapsack](https://github.com/KnapsackPro/knapsack)
+
 [parallel_tests](https://github.com/grosser/parallel_tests)
+
 [rspecq](https://github.com/skroutz/rspecq)
+
 [RSpec ABQ](https://github.com/rwx-research/rspec-abq)
+
 
 ## Contributing
 
